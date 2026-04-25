@@ -1,0 +1,14 @@
+# Compiled binaries / object files
+download
+*.o
+*.out
+
+# Wireshark captures can be large; add only selected ones if needed
+*.pcap
+*.pcapng
+
+# OS/editor files
+.DS_Store
+.vscode/
+.idea/
+*~
