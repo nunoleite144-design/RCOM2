@@ -1,6 +1,6 @@
 # Guia prático — Teste da Parte 1: aplicação `download`
 
-Este guia é para usares amanhã na FEUP para **testar a Parte 1** do projeto: a aplicação `download` em C que descarrega um ficheiro por FTP.
+Este guia é para usares na FEUP para **testar a Parte 1** do projeto: a aplicação `download` em C que descarrega um ficheiro por FTP.
 
 A ideia é terminares o teste com:
 
@@ -12,7 +12,31 @@ A ideia é terminares o teste com:
 
 ---
 
-# 1. Objetivo da Parte 1
+# 1. Informação importante da bancada
+
+Na folha da bancada aparece explicitamente:
+
+```text
+FTP: 172.16.1.10
+```
+
+Portanto, **o servidor FTP a usar no laboratório é**:
+
+```text
+172.16.1.10
+```
+
+O URL final para testar o teu programa vai ter esta forma:
+
+```bash
+./download ftp://172.16.1.10/caminho/do/ficheiro
+```
+
+O único detalhe que tens de descobrir no momento é o **caminho exato do ficheiro** existente no servidor FTP.
+
+---
+
+# 2. Objetivo da Parte 1
 
 A aplicação deve receber um URL FTP neste formato:
 
@@ -24,7 +48,7 @@ E realizar automaticamente:
 
 ```text
 1. Parse do URL
-2. Resolução DNS do host
+2. Resolução/identificação do servidor
 3. Ligação TCP de controlo à porta 21
 4. Login com USER/PASS
 5. TYPE I
@@ -37,33 +61,38 @@ E realizar automaticamente:
 
 ---
 
-# 2. Onde fazer o teste
+# 3. Onde fazer o teste
 
-Faz o teste num tux da FEUP, de preferência no `tux93`, porque é o tux que já tens usado como máquina principal do projeto.
+Faz o teste no **tux93**, que é o tux que tens usado como máquina principal.
 
-## Nota importante sobre a interface de rede
+A Parte 1 deve ser testada **depois de a rede estar funcional o suficiente para o tux93 alcançar o FTP `172.16.1.10`**.
 
-Se amanhã **só fores repetir a Experiência 3** e ainda não tiveres montado a topologia completa com RC/NAT, o tráfego FTP pode sair pela **interface de gestão da FEUP**, normalmente algo como:
+Antes de correr o teu programa, confirma a conectividade:
 
-```text
-if_mng
+```bash
+ping -c 4 172.16.1.10
 ```
 
-ou outra interface com IP `10.227.20.X`.
-
-Por isso, **não assumas automaticamente que a captura deve ser na `if_e1`**. Antes de capturar, confirma por onde o PC chega ao servidor.
+Se o ping responder, ótimo. Se não responder, não concluas logo que o FTP não funciona; o servidor pode bloquear ICMP. Nesse caso, continua para o teste manual com `ftp`.
 
 ---
 
-# 3. Levar/obter o código no tux
+# 4. Levar/obter o código no tux93
 
 ## Opção A — Clonar o GitHub
 
 No terminal:
 
 ```bash
+cd ~
 git clone https://github.com/nunoleite144-design/RCOM2.git
 cd RCOM2
+```
+
+Se a pasta já existir:
+
+```bash
+cd ~/RCOM2
 ```
 
 Se o GitHub pedir autenticação e te atrapalhar, usa a opção B.
@@ -81,7 +110,7 @@ Ou copia a pasta inteira `RCOM2`.
 
 ---
 
-# 4. Compilar a aplicação
+# 5. Compilar a aplicação
 
 Dentro da pasta do projeto:
 
@@ -111,43 +140,86 @@ gcc -Wall -Wextra -pedantic -std=c11 src/download.c -o download
 
 ---
 
-# 5. Primeiro teste rápido sem Wireshark
+# 6. Descobrir um ficheiro real no servidor FTP
 
-Antes de começares a captura, faz um teste simples só para ver se o programa funciona.
+Como o servidor é conhecido (`172.16.1.10`) mas o ficheiro exato pode variar, entra manualmente no FTP para ver o conteúdo.
 
-## Caso o professor te dê um URL concreto do servidor netlab
-
-Usa exatamente esse URL:
+No `tux93`:
 
 ```bash
-./download ftp://ftp.netlab.fe.up.pt/pub/...
+ftp 172.16.1.10
 ```
 
-## Caso ainda não saibas o ficheiro exato
+Quando o servidor pedir credenciais, usa as que forem aceites pelo servidor. Se estiver configurado para acesso anónimo, tenta:
 
-Podes fazer um teste de sanidade com o ficheiro que aparece no guião da primeira aula:
-
-```bash
-./download ftp://anonymous:anonymous@mirrors.up.pt/debian/README.html
+```text
+Name: anonymous
+Password: anonymous@
 ```
 
-Ou, se o teu programa usar anonymous por omissão:
+Depois, dentro do cliente FTP:
+
+```text
+ftp> pwd
+ftp> ls
+```
+
+Se vires uma pasta relevante, entra nela:
+
+```text
+ftp> cd nome_da_pasta
+ftp> pwd
+ftp> ls
+```
+
+O objetivo é encontrares **um ficheiro concreto**, não uma pasta.
+
+Exemplo genérico:
+
+```text
+ftp> pwd
+/pub
+ftp> ls
+README.txt
+```
+
+Nesse exemplo, o URL para o teu programa seria:
 
 ```bash
-./download ftp://mirrors.up.pt/debian/README.html
+./download ftp://172.16.1.10/pub/README.txt
+```
+
+Quando terminares a exploração manual:
+
+```text
+ftp> quit
 ```
 
 ---
 
-# 6. O que deves ver no terminal se correr bem
+# 7. Primeiro teste rápido do teu programa
+
+Agora testa o teu programa com o caminho que descobriste.
+
+Exemplo genérico:
+
+```bash
+./download ftp://172.16.1.10/pub/README.txt
+```
+
+Substitui `/pub/README.txt` pelo caminho real que encontrares.
+
+---
+
+# 8. O que deves ver no terminal se correr bem
 
 O terminal deve mostrar algo semelhante a:
 
 ```text
-Host: ...
-Path: ...
+Host: 172.16.1.10
+Path: /...
 Output file: ...
-Server IP: ...
+Server IP: 172.16.1.10
 < 220 ...
 > USER ...
 < 331 ...
@@ -175,7 +247,7 @@ Saved ... bytes to ...
 
 ---
 
-# 7. Confirmar que o ficheiro foi mesmo descarregado
+# 9. Confirmar que o ficheiro foi mesmo descarregado
 
 Depois do download:
 
@@ -188,60 +260,40 @@ Confirma que apareceu o ficheiro descarregado.
 Se o ficheiro for de texto, podes fazer:
 
 ```bash
-head ficheiro
-```
-
-ou:
-
-```bash
-cat ficheiro | head
+head nome_do_ficheiro
 ```
 
 ---
 
-# 8. Descobrir em que interface capturar no Wireshark
+# 10. Descobrir em que interface capturar no Wireshark
 
-Antes de fazer a captura final, descobre por onde o tux vai comunicar com o servidor.
+Antes de fazer a captura final, descobre por onde o `tux93` vai comunicar com o FTP.
 
-## Ver a rota para o servidor
+Como o servidor é:
 
-Se fores usar `ftp.netlab.fe.up.pt`:
-
-```bash
-getent hosts ftp.netlab.fe.up.pt
+```text
+172.16.1.10
 ```
 
-Aponta o IP que aparecer.
-
-Depois:
-
-```bash
-ip route get IP_DO_SERVIDOR
-```
-
-Exemplo:
+faz:
 
 ```bash
 ip route get 172.16.1.10
 ```
 
-O resultado costuma indicar a interface de saída, por exemplo:
-
-```text
-dev if_mng
-```
-
-ou:
+O resultado indica a interface de saída, por exemplo:
 
 ```text
 dev if_e1
 ```
 
+ou outra interface.
+
 **É essa interface que deves selecionar no Wireshark.**
 
 ---
 
-# 9. Captura Wireshark do teste final
+# 11. Captura Wireshark do teste final
 
 Agora faz o teste que interessa para o relatório.
 
@@ -253,10 +305,10 @@ sudo wireshark &
 
 ## Passo 2 — Selecionar a interface certa
 
-Seleciona a interface que descobriste com:
+Seleciona a interface indicada por:
 
 ```bash
-ip route get IP_DO_SERVIDOR
+ip route get 172.16.1.10
 ```
 
 ## Passo 3 — Começar a captura
@@ -265,23 +317,17 @@ Clica em **Start Capture**.
 
 ## Passo 4 — Executar de novo o download
 
-Usa o URL que queres guardar como teste oficial.
+Corre novamente o teu programa com o URL real que já validaste.
 
-Idealmente, usa o servidor pedido pelo professor:
-
-```bash
-./download ftp://ftp.netlab.fe.up.pt/pub/...
-```
-
-Se ainda não tiveres o ficheiro exato, usa temporariamente o ficheiro de teste:
+Exemplo genérico:
 
 ```bash
-./download ftp://anonymous:anonymous@mirrors.up.pt/debian/README.html
+./download ftp://172.16.1.10/pub/README.txt
 ```
 
 ---
 
-# 10. Parar e guardar a captura
+# 12. Parar e guardar a captura
 
 Depois de o download terminar:
 
@@ -292,18 +338,12 @@ Depois de o download terminar:
 Nome recomendado:
 
 ```text
-parte1_download_ftp.pcapng
-```
-
-ou, se for netlab:
-
-```text
-parte1_download_netlab.pcapng
+parte1_download_ftp_172.16.1.10.pcapng
 ```
 
 ---
 
-# 11. Filtros úteis no Wireshark
+# 13. Filtros úteis no Wireshark
 
 Depois da captura, podes usar:
 
@@ -317,15 +357,15 @@ ou:
 tcp.port == 21
 ```
 
-Se já souberes o IP do servidor:
+ou ainda:
 
 ```text
-ip.addr == IP_DO_SERVIDOR
+ip.addr == 172.16.1.10
 ```
 
 ---
 
-# 12. O que tens de observar no Wireshark
+# 14. O que tens de observar no Wireshark
 
 A captura deve permitir mostrar:
 
@@ -384,7 +424,7 @@ Na ligação de controlo deve aparecer:
 
 ---
 
-# 13. Prints que vale a pena tirar
+# 15. Prints que vale a pena tirar
 
 Não precisas de tirar 20 prints. Tira estes 4 ou 5 bem escolhidos:
 
@@ -434,7 +474,7 @@ Mostrar que existe uma conexão TCP diferente da porta 21 usada para transferir 
 
 ---
 
-# 14. O que guardar para o relatório
+# 16. O que guardar para o relatório
 
 No fim da Parte 1, deves ter guardado:
 
@@ -450,7 +490,7 @@ Nome recomendado para organizar:
 
 ```text
 EXPERIÊNCIAS/PARTE1/
-├── parte1_download_ftp.pcapng
+├── parte1_download_ftp_172.16.1.10.pcapng
 ├── screenshot_terminal_download.png
 ├── screenshot_ftp_commands.png
 ├── screenshot_pasv.png
@@ -460,23 +500,17 @@ EXPERIÊNCIAS/PARTE1/
 
 ---
 
-# 15. Troubleshooting rápido
-
-## `gethostbyname: Unknown host`
-
-O DNS falhou. Testa:
-
-```bash
-getent hosts ftp.netlab.fe.up.pt
-```
-
-Se não resolver, pergunta ao professor se o DNS/rede está disponível naquela máquina.
+# 17. Troubleshooting rápido
 
 ## `connect: Connection refused`
 
-O servidor FTP recusou a ligação ou o servidor não está acessível nesse momento.
+O servidor FTP recusou a ligação ou o serviço não está disponível naquele momento.
 
-Confirma o URL e volta a tentar.
+Testa primeiro:
+
+```bash
+ftp 172.16.1.10
+```
 
 ## O programa fica preso depois de `PASV`
 
@@ -492,17 +526,28 @@ Confirma se o servidor responde com:
 
 O caminho do ficheiro pode estar errado.
 
-Confirma o caminho exato pedido pelo professor.
+Volta ao cliente FTP manual e confirma:
+
+```text
+ftp> pwd
+ftp> ls
+```
+
+## Não sabes que ficheiro escolher
+
+Escolhe um ficheiro pequeno e simples, idealmente `.txt`, `.html` ou semelhante, para o teste ser rápido e fácil de validar.
 
 ---
 
-# 16. Checklist rápida para amanhã
+# 18. Checklist rápida para amanhã
 
 ```text
+[ ] Entrei no servidor FTP 172.16.1.10 manualmente
+[ ] Descobri um ficheiro real e anotei o path completo
 [ ] Levei/cloniei o repo RCOM2
 [ ] Compilei com make
-[ ] Fiz um teste rápido de funcionamento
-[ ] Confirmei por que interface sai o tráfego
+[ ] Fiz um teste rápido do ./download
+[ ] Confirmei por que interface sai o tráfego para 172.16.1.10
 [ ] Abri Wireshark na interface certa
 [ ] Corri o download oficial
 [ ] O ficheiro apareceu no disco
@@ -513,14 +558,15 @@ Confirma o caminho exato pedido pelo professor.
 
 ---
 
-# 17. Mini-resumo mental
+# 19. Mini-resumo mental
 
 ```text
-Parte 1 = provar que a app funciona.
+Parte 1 = provar que a app funciona contra o FTP 172.16.1.10.
 
 Preciso de:
+- descobrir um ficheiro no FTP;
 - compilar;
-- descarregar ficheiro;
+- descarregar com ./download;
 - guardar captura Wireshark;
 - mostrar FTP controlo + dados;
 - guardar evidências para o relatório.
