@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block content %}
+<section>
+  <h2>{{ 'Editar GRP' if grp else 'Nova GRP' }}</h2>
+  <form method="post" class="grp-form">
+    <label>Número GRP
+      <input type="text" name="numero_grp" value="{{ grp.numero_grp if grp else '' }}" required>
+    </label>
+
+    <label>Equipamento
+      <input type="text" name="equipamento" value="{{ grp.equipamento if grp else '' }}" required>
+    </label>
+
+    <label>Número de série
+      <input type="text" name="numero_serie" value="{{ grp.numero_serie if grp else '' }}">
+    </label>
+
+    <label>Serviço hospitalar
+      <input type="text" name="servico" value="{{ grp.servico if grp else '' }}" required>
+    </label>
+
+    <label>Descrição da avaria
+      <textarea name="descricao_avaria" rows="4" required>{{ grp.descricao_avaría if grp else '' }}</textarea>
+    </label>
+
+    <label>Data de abertura
+      <input type="date" name="data_abertura" value="{{ grp.data_abertura if grp and grp.data_abertura else '' }}" required>
+    </label>
+
+    <label>Prazo de reparação
+      <input type="date" name="prazo_reparacao" value="{{ grp.prazo_reparacao if grp and grp.prazo_reparacao else '' }}" required>
+    </label>
+
+    <label>Data de fecho
+      <input type="date" name="data_fecho" value="{{ grp.data_fecho if grp and grp.data_fecho else '' }}">
+    </label>
+
+    <label>Estado
+      <select name="estado_id" required>
+        {% for estado in estados %}
+          <option value="{{ estado.id }}" {% if grp and grp.estado_id == estado.id %}selected{% endif %}>{{ estado.nome }}</option>
+        {% endfor %}
+      </select>
+    </label>
+
+    <label>Técnico responsável
+      <input type="text" name="tecnico_responsavel" value="{{ grp.tecnico_responsavel if grp else '' }}">
+    </label>
+
+    <label>Fornecedor
+      <input type="text" name="fornecedor" value="{{ grp.fornecedor if grp else '' }}">
+    </label>
+
+    <label>Notas
+      <textarea name="notas" rows="3">{{ grp.notas if grp else '' }}</textarea>
+    </label>
+
+    <button type="submit">Guardar</button>
+  </form>
+</section>
+{% endblock %}

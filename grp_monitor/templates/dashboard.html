@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="cards">
+  <article class="card">
+    <h3>Total GRP</h3>
+    <p>{{ total }}</p>
+  </article>
+  <article class="card">
+    <h3>GRP em aberto</h3>
+    <p>{{ abertas }}</p>
+  </article>
+  <article class="card">
+    <h3>GRP fechadas</h3>
+    <p>{{ fechadas }}</p>
+  </article>
+  <article class="card danger">
+    <h3>Em atraso</h3>
+    <p>{{ em_atraso | length }}</p>
+  </article>
+</section>
+
+<section>
+  <h2>Distribuição por estado</h2>
+  <ul>
+    {% for nome, quantidade in por_estado %}
+      <li><strong>{{ nome }}:</strong> {{ quantidade }}</li>
+    {% endfor %}
+  </ul>
+</section>
+
+<section>
+  <h2>Alertas de prazo ultrapassado</h2>
+  {% if em_atraso %}
+    <table>
+      <thead>
+        <tr>
+          <th>GRP</th>
+          <th>Equipamento</th>
+          <th>Serviço</th>
+          <th>Prazo</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for g in em_atraso %}
+          <tr class="row-danger">
+            <td>{{ g.numero_grp }}</td>
+            <td>{{ g.equipamento }}</td>
+            <td>{{ g.servico }}</td>
+            <td>{{ g.prazo_reparacao }}</td>
+            <td>{{ g.estado.nome }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>Sem alertas neste momento.</p>
+  {% endif %}
+</section>
+{% endblock %}

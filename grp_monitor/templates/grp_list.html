@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block content %}
+<section>
+  <h2>Lista de GRP</h2>
+  <form method="get" class="search-form">
+    <input type="text" name="q" value="{{ termo }}" placeholder="Pesquisar por GRP, equipamento, serviço...">
+    <button type="submit">Pesquisar</button>
+  </form>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Nº GRP</th>
+        <th>Equipamento</th>
+        <th>Serviço</th>
+        <th>Estado</th>
+        <th>Prazo</th>
+        <th>Atraso</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for g in grps %}
+        <tr class="{{ 'row-danger' if g.em_atraso else '' }}">
+          <td>{{ g.numero_grp }}</td>
+          <td>{{ g.equipamento }}</td>
+          <td>{{ g.servico }}</td>
+          <td>{{ g.estado.nome }}</td>
+          <td>{{ g.prazo_reparacao }}</td>
+          <td>{{ 'Sim' if g.em_atraso else 'Não' }}</td>
+          <td><a href="{{ url_for('editar_grp', grp_id=g.id) }}">Editar</a></td>
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="7">Sem registos.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}
